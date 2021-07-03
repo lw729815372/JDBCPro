@@ -1,5 +1,8 @@
 package com.sdu.java.jdbcutils;
 
+import com.alibaba.druid.pool.DruidDataSourceFactory;
+
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
@@ -15,8 +18,7 @@ public class JDBCUtils {
         String driverClass = properties.getProperty("driverClass");
         String url = properties.getProperty("url");
         Class.forName(driverClass);
-        Connection connection = DriverManager.getConnection(url, user, password);
-        return connection;
+        return DriverManager.getConnection(url, user, password);
     }
 
     public static int update(Connection connection,String sql,Object... args) throws SQLException {
@@ -57,5 +59,30 @@ public class JDBCUtils {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+    }
+
+    /**
+     * druid连接池获取连接的方法
+     */
+    private static DataSource dataSource;
+    static {
+        try {
+            Properties properties = new Properties();
+            InputStream resourceAsStream = ClassLoader.getSystemClassLoader().getResourceAsStream("druid.properties");
+            properties.load(resourceAsStream);
+            dataSource = DruidDataSourceFactory.createDataSource(properties);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static Connection getDruidConnection(){
+        Connection connection = null;
+        try {
+            connection = dataSource.getConnection();
+            return connection;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return null;
     }
 }
